@@ -1,0 +1,111 @@
+/* ─── CSS Variables (Evernote Dark Theme) ─── */
+:root {
+  /* Backgrounds */
+  --topbar-bg: #1c1c1c;
+  --sidebar-bg: #161616;
+  --notelist-bg: #1e1e1e;
+  --content-bg: #242424;
+
+  /* Text */
+  --text-primary: #e6e6e6;
+  --text-secondary: #999999;
+  --text-muted: #555555;
+
+  /* Borders */
+  --border-color: #2d2d2d;
+  --border-subtle: #252525;
+
+  /* Accent (Evernote Green) */
+  --accent-color: #2dbe60;
+
+  /* Interactive states */
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --selected-bg: rgba(45, 190, 96, 0.14);
+
+  /* Input */
+  --input-bg: rgba(255, 255, 255, 0.05);
+
+  /* Tag */
+  --tag-bg: rgba(45, 190, 96, 0.12);
+
+  /* Code */
+  --code-bg: rgba(45, 190, 96, 0.1);
+  --code-color: #7ec8a0;
+  --pre-bg: #1a1a1a;
+  --pre-color: #e6e6e6;
+
+  /* Blockquote */
+  --blockquote-bg: rgba(45, 190, 96, 0.07);
+
+  /* Table */
+  --table-header-bg: rgba(255, 255, 255, 0.04);
+  --table-row-alt: rgba(255, 255, 255, 0.02);
+}
+
+/* ─── Reset ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic',
+    '맑은 고딕', sans-serif;
+  background-color: var(--content-bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Responsive Panel Widths ─── */
+
+/* 태블릿: 패널 폭 축소 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .notebook-tree {
+    width: 170px !important;
+    min-width: 170px !important;
+  }
+
+  .note-list {
+    width: 210px !important;
+    min-width: 210px !important;
+  }
+}
+
+/* 모바일: 각 패널이 전체 높이 차지 */
+@media (max-width: 767px) {
+  .notebook-tree,
+  .note-list,
+  .note-viewer {
+    border-right: none !important;
+  }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
