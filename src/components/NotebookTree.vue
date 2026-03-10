@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useNotesStore } from '@/stores/notesStore'
-import type { Notebook } from '@/data/notebooksData'
+import type { MenuTreeNode } from '@/types/menu'
 import NotebookTreeItem from './NotebookTreeItem.vue'
+
+const DEFAULT_OPEN_ID = import.meta.env.VITE_DEFAULT_OPEN_MENU_ID
 
 const store = useNotesStore()
 const collapsed = ref<Record<string, boolean>>({})
+
+// 트리 로드 완료 후 초기 collapsed 상태 설정 (1회만 실행)
+watch(() => store.menuTree, (tree) => {
+  if (!tree.length) return
+  const ids = collectParentIds(tree)
+  const next: Record<string, boolean> = {}
+  ids.forEach(id => { next[id] = true })
+  if (DEFAULT_OPEN_ID) next[DEFAULT_OPEN_ID] = false
+  collapsed.value = next
+}, { once: true })
 
 function toggle(id: string) {
   collapsed.value[id] = !collapsed.value[id]
 }
 
-function selectNotebook(nb: Notebook) {
-  store.selectNotebook(nb.id)
+function selectNode(node: MenuTreeNode) {
+  store.selectMenu(node.menuId)
 }
 
 function expandAll() {
@@ -20,18 +32,18 @@ function expandAll() {
 }
 
 function collapseAll() {
-  const ids = collectParentIds(store.notebooks)
+  const ids = collectParentIds(store.menuTree)
   const next: Record<string, boolean> = {}
   ids.forEach(id => { next[id] = true })
   collapsed.value = next
 }
 
-function collectParentIds(list: Notebook[]): string[] {
+function collectParentIds(list: MenuTreeNode[]): string[] {
   const ids: string[] = []
-  for (const nb of list) {
-    if (nb.children?.length) {
-      ids.push(nb.id)
-      ids.push(...collectParentIds(nb.children))
+  for (const node of list) {
+    if (node.children.length) {
+      ids.push(node.menuId)
+      ids.push(...collectParentIds(node.children))
     }
   }
   return ids
@@ -42,14 +54,12 @@ function collectParentIds(list: Notebook[]): string[] {
   <nav class="notebook-tree">
     <div class="tree-toolbar">
       <button class="toolbar-btn" title="전체 펼치기" @click="expandAll">
-        <!-- unfold: 두 화살표가 위아래로 벌어짐 -->
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M3 5.5L7 2L11 5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M3 8.5L7 12L11 8.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <button class="toolbar-btn" title="전체 줄이기" @click="collapseAll">
-        <!-- fold: 두 화살표가 가운데로 모임 -->
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M3 2.5L7 6L11 2.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M3 11.5L7 8L11 11.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -57,15 +67,22 @@ function collectParentIds(list: Notebook[]): string[] {
       </button>
     </div>
 
-    <ul class="tree-list">
+    <div v-if="store.loading && !store.menuTree.length" class="loading-state">
+      불러오는 중...
+    </div>
+    <div v-else-if="store.error && !store.menuTree.length" class="error-state">
+      {{ store.error }}
+    </div>
+
+    <ul v-else class="tree-list">
       <NotebookTreeItem
-        v-for="nb in store.notebooks"
-        :key="nb.id"
-        :notebook="nb"
+        v-for="node in store.menuTree"
+        :key="node.menuId"
+        :node="node"
         :depth="0"
         :collapsed="collapsed"
-        :selected-id="store.selectedNotebookId"
-        @select="selectNotebook"
+        :selected-id="store.selectedMenuId"
+        @select="selectNode"
         @toggle="toggle"
       />
     </ul>
@@ -74,8 +91,8 @@ function collectParentIds(list: Notebook[]): string[] {
 
 <style scoped>
 .notebook-tree {
-  width: 210px;
-  min-width: 210px;
+  width: 280px;
+  min-width: 280px;
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
@@ -115,5 +132,21 @@ function collectParentIds(list: Notebook[]): string[] {
   list-style: none;
   margin: 0;
   padding: 0 6px 12px;
+}
+
+.loading-state,
+.error-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 12px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.error-state {
+  color: #e06c6c;
 }
 </style>

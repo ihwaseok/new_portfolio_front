@@ -1,35 +1,43 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch, nextTick } from 'vue'
 import { marked } from 'marked'
+import mermaid from 'mermaid'
 import { useNotesStore } from '@/stores/notesStore'
+
+mermaid.initialize({ startOnLoad: false, theme: 'dark' })
 
 const store = useNotesStore()
 
 const renderedContent = computed(() => {
-  if (!store.selectedNote) return ''
-  return marked(store.selectedNote.content) as string
+  if (!store.noteContent) return ''
+  return marked(store.noteContent) as string
+})
+
+watch(renderedContent, async () => {
+  await nextTick()
+  await mermaid.run({ querySelector: '.markdown-body .language-mermaid' })
 })
 </script>
 
 <template>
   <main class="note-viewer">
-    <div v-if="!store.selectedNote" class="empty-state">
+    <div v-if="!store.selectedNoteId" class="empty-state">
       <div class="empty-icon">📝</div>
       <p class="empty-text">노트를 선택하세요</p>
-      <p class="empty-sub">왼쪽 패널에서 노트북과 노트를 선택하면<br>내용이 여기에 표시됩니다.</p>
+      <p class="empty-sub">왼쪽 패널에서 메뉴와 항목을 선택하면<br>내용이 여기에 표시됩니다.</p>
+    </div>
+
+    <div v-else-if="store.contentLoading" class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <p class="empty-text">불러오는 중...</p>
+    </div>
+
+    <div v-else-if="store.error && !store.noteContent" class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <p class="empty-text">{{ store.error }}</p>
     </div>
 
     <template v-else>
-      <div class="note-header">
-        <h1 class="note-title">{{ store.selectedNote.title }}</h1>
-        <div class="note-meta">
-          <span class="meta-item">{{ store.selectedNote.updatedAt }}</span>
-          <span v-if="store.selectedNotebook" class="meta-item meta-sep">
-            {{ store.selectedNotebook.title }}
-          </span>
-        </div>
-      </div>
-
       <div class="markdown-body" v-html="renderedContent" />
     </template>
   </main>
@@ -69,35 +77,6 @@ const renderedContent = computed(() => {
   font-size: 13px;
   text-align: center;
   line-height: 1.6;
-}
-
-.note-header {
-  padding: 32px 48px 20px;
-  border-bottom: 1px solid var(--border-subtle);
-  flex-shrink: 0;
-}
-
-.note-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 10px;
-  line-height: 1.3;
-}
-
-.note-meta {
-  display: flex;
-  gap: 16px;
-}
-
-.meta-item {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.meta-sep::before {
-  content: '·';
-  margin-right: 8px;
 }
 
 .markdown-body {

@@ -39,8 +39,25 @@ const contextTitle = computed(() => {
 
     <!-- 데스크탑: 로고 + 타이틀 -->
     <div class="desktop-header">
-      <div class="logo-mark">N</div>
-      <span class="app-title">My Notes</span>
+      <div class="logo-mark"><i class="pi pi-book" /></div>
+      <span class="app-title">LSH Portfolio</span>
+    </div>
+
+    <div class="spacer" />
+
+    <!-- 우측 버튼 그룹 -->
+    <div class="topbar-actions">
+      <a href="https://mylsh-redmine.duckdns.org" target="_blank" rel="noopener" class="action-btn text-btn">
+        <i class="pi pi-list-check" />
+        <span>일감관리</span>
+      </a>
+      <a href="https://mylsh-zabbix.duckdns.org" target="_blank" rel="noopener" class="action-btn text-btn">
+        <i class="pi pi-desktop" />
+        <span>모니터링</span>
+      </a>
+      <a href="https://github.com/ihwaseok" target="_blank" rel="noopener" class="action-btn icon-btn" title="GitHub">
+        <i class="pi pi-github" />
+      </a>
     </div>
 
   </header>
@@ -139,6 +156,58 @@ const contextTitle = computed(() => {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ── 우측 버튼 그룹 ── */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  transition: background-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.text-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.text-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background-color: var(--selected-bg);
+}
+
+.text-btn .pi {
+  font-size: 13px;
+}
+
+.icon-btn {
+  padding: 6px 8px;
+  font-size: 18px;
 }
 
 /* ── 반응형 ── */

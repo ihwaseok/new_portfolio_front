@@ -2,49 +2,41 @@
 import { useNotesStore } from '@/stores/notesStore'
 
 const store = useNotesStore()
-
-function getPreview(content: string) {
-  return content
-    .replace(/#{1,6}\s+/g, '')
-    .replace(/\*\*/g, '')
-    .replace(/`{1,3}[^`]*`{1,3}/gs, '')
-    .replace(/\n+/g, ' ')
-    .trim()
-    .slice(0, 80)
-}
 </script>
 
 <template>
   <div class="note-list">
     <div class="list-header">
-      <span v-if="store.selectedNotebook" class="notebook-name">
-        {{ store.selectedNotebook.title }}
+      <span v-if="store.selectedMenu" class="notebook-name">
+        {{ store.selectedMenu.menuNm }}
       </span>
-      <span v-else class="notebook-name placeholder">노트북을 선택하세요</span>
+      <span v-else class="notebook-name placeholder">메뉴를 선택하세요</span>
       <span v-if="store.filteredNotes.length" class="note-count">
         {{ store.filteredNotes.length }}
       </span>
     </div>
 
-    <div v-if="!store.selectedNotebookId" class="empty-state">
-      <p>← 노트북을 선택하세요</p>
+    <div v-if="!store.selectedMenuId" class="empty-state">
+      <p>← 메뉴를 선택하세요</p>
+    </div>
+
+    <div v-else-if="store.loading" class="empty-state">
+      <p>불러오는 중...</p>
     </div>
 
     <div v-else-if="store.filteredNotes.length === 0" class="empty-state">
-      <p>노트가 없습니다</p>
+      <p>항목이 없습니다</p>
     </div>
 
     <ul v-else class="notes-ul">
       <li
         v-for="note in store.filteredNotes"
-        :key="note.id"
+        :key="note.MENU_ID"
         class="note-item"
-        :class="{ selected: note.id === store.selectedNoteId }"
-        @click="store.selectNote(note.id)"
+        :class="{ selected: note.MENU_ID === store.selectedNoteId }"
+        @click="store.selectNote(note.MENU_ID)"
       >
-        <div class="note-title">{{ note.title }}</div>
-        <div class="note-meta">{{ note.updatedAt }}</div>
-        <div class="note-preview">{{ getPreview(note.content) }}</div>
+        <div class="note-title">{{ note.MENU_NM }}</div>
       </li>
     </ul>
   </div>
@@ -134,7 +126,7 @@ function getPreview(content: string) {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -145,19 +137,4 @@ function getPreview(content: string) {
   font-weight: 600;
 }
 
-.note-meta {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 5px;
-}
-
-.note-preview {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 </style>

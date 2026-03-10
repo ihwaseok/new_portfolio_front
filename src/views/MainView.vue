@@ -20,6 +20,7 @@ function updateBreakpoint() {
 onMounted(() => {
   updateBreakpoint()
   window.addEventListener('resize', updateBreakpoint)
+  store.init()
 })
 
 onUnmounted(() => {
@@ -35,11 +36,7 @@ onUnmounted(() => {
 
       <!-- 드로어 오버레이 (모바일) -->
       <Transition name="overlay">
-        <div
-          v-if="isMobile && store.drawerOpen"
-          class="drawer-overlay"
-          @click="store.closeDrawer()"
-        />
+        <div v-if="isMobile && store.drawerOpen" class="drawer-overlay" @click="store.closeDrawer()" />
       </Transition>
 
       <!-- NotebookTree: 데스크탑/태블릿은 일반 패널, 모바일은 드로어 -->
@@ -127,8 +124,8 @@ onUnmounted(() => {
 /* ── 태블릿: 패널 폭 축소 ── */
 @media (min-width: 768px) and (max-width: 1023px) {
   :deep(.notebook-tree) {
-    width: 170px !important;
-    min-width: 170px !important;
+    width: 220px !important;
+    min-width: 220px !important;
   }
 
   :deep(.note-list) {
