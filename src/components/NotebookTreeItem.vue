@@ -17,6 +17,13 @@ const hasChildren = !!props.node.children.length
 const isOpen = () => !props.collapsed[props.node.menuId]
 const isSelected = () => props.node.menuId === props.selectedId
 
+function calcTotalSubCnt(node: MenuTreeNode): number {
+  if (!node.children.length) return node.subCnt
+  return node.children.reduce((sum, child) => sum + calcTotalSubCnt(child), 0)
+}
+
+const totalSubCnt = calcTotalSubCnt(props.node)
+
 function handleClick() {
   emit('select', props.node)
 }
@@ -40,8 +47,10 @@ function handleArrowClick(e: MouseEvent) {
       @click="handleClick"
       @dblclick="handleDblClick"
     >
-      <span class="nb-title">{{ node.menuNm }}</span>
-      <span v-if="hasChildren" class="sub-cnt">{{ node.children.length }}</span>
+      <span class="title-area">
+        <span class="nb-title">{{ node.menuNm }}</span>
+        <span v-if="totalSubCnt > 0" class="sub-cnt">{{ totalSubCnt }}</span>
+      </span>
       <span
         v-if="hasChildren"
         class="arrow"
@@ -107,10 +116,19 @@ function handleArrowClick(e: MouseEvent) {
   font-weight: 600;
 }
 
-.nb-title {
+.title-area {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.nb-title {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sub-cnt {
