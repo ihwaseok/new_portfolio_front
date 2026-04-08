@@ -38,7 +38,7 @@ export const useNotesStore = defineStore('notes', () => {
     if (DEFAULT_NOTE_ID) {
       await selectMenu(DEFAULT_NOTE_ID)
       if (menuNotes.value.length) {
-        await selectNote(menuNotes.value[0].MENU_ID)
+        await selectNote(menuNotes.value[0]!.MENU_ID)
       }
     }
   }

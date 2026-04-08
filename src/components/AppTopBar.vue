@@ -5,8 +5,8 @@ import { useNotesStore } from '@/stores/notesStore'
 const store = useNotesStore()
 
 const contextTitle = computed(() => {
-  if (store.mobilePanel === 'content') return store.selectedNote?.title ?? ''
-  return store.selectedNotebook?.title ?? 'My Notes'
+  if (store.mobilePanel === 'content') return store.selectedNote?.MENU_NM ?? ''
+  return store.selectedMenu?.menuNm ?? 'My Notes'
 })
 </script>
 
