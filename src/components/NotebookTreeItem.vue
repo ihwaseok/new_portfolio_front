@@ -18,8 +18,7 @@ const isOpen = () => !props.collapsed[props.node.menuId]
 const isSelected = () => props.node.menuId === props.selectedId
 
 function calcTotalSubCnt(node: MenuTreeNode): number {
-  if (!node.children.length) return node.subCnt
-  return node.children.reduce((sum, child) => sum + calcTotalSubCnt(child), 0)
+  return node.children.reduce((sum, child) => sum + calcTotalSubCnt(child), node.subCnt)
 }
 
 const totalSubCnt = calcTotalSubCnt(props.node)
