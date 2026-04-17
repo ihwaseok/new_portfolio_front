@@ -5,6 +5,7 @@ import AppTopBar from '@/components/AppTopBar.vue'
 import NotebookTree from '@/components/NotebookTree.vue'
 import NoteList from '@/components/NoteList.vue'
 import NoteViewer from '@/components/NoteViewer.vue'
+import VisionSample from '@/components/VisionSample.vue'
 
 const store = useNotesStore()
 
@@ -34,21 +35,25 @@ onUnmounted(() => {
 
     <div class="app-body">
 
-      <!-- 드로어 오버레이 (모바일) -->
-      <Transition name="overlay">
-        <div v-if="isMobile && store.drawerOpen" class="drawer-overlay" @click="store.closeDrawer()" />
-      </Transition>
+      <VisionSample v-if="store.focusMode" />
 
-      <!-- NotebookTree: 데스크탑/태블릿은 일반 패널, 모바일은 드로어 -->
-      <div class="notebook-tree-wrapper" :class="{ 'drawer-open': isMobile && store.drawerOpen }">
-        <NotebookTree />
-      </div>
+      <template v-else>
+        <!-- 드로어 오버레이 (모바일) -->
+        <Transition name="overlay">
+          <div v-if="isMobile && store.drawerOpen" class="drawer-overlay" @click="store.closeDrawer()" />
+        </Transition>
 
-      <!-- NoteList -->
-      <NoteList v-show="!isMobile || store.mobilePanel === 'list'" />
+        <!-- NotebookTree: 데스크탑/태블릿은 일반 패널, 모바일은 드로어 -->
+        <div class="notebook-tree-wrapper" :class="{ 'drawer-open': isMobile && store.drawerOpen }">
+          <NotebookTree />
+        </div>
 
-      <!-- NoteViewer -->
-      <NoteViewer v-show="!isMobile || store.mobilePanel === 'content'" />
+        <!-- NoteList -->
+        <NoteList v-show="!isMobile || store.mobilePanel === 'list'" />
+
+        <!-- NoteViewer -->
+        <NoteViewer v-show="!isMobile || store.mobilePanel === 'content'" />
+      </template>
 
     </div>
   </div>

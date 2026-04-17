@@ -47,6 +47,12 @@ const contextTitle = computed(() => {
 
     <!-- 우측 버튼 그룹 -->
     <div class="topbar-actions">
+      <!--
+      <button class="action-btn text-btn focus-btn" :class="{ 'focus-active': store.focusMode }" @click="store.toggleFocusMode()" title="AI 테스트">
+        <i class="pi pi-microchip-ai" />
+        <span>AI 테스트</span>
+      </button>
+      -->
       <a href="https://mylsh-redmine.duckdns.org" target="_blank" rel="noopener" class="action-btn text-btn">
         <i class="pi pi-list-check" />
         <span>일감관리</span>
@@ -210,10 +216,32 @@ const contextTitle = computed(() => {
   font-size: 18px;
 }
 
+.focus-btn {
+  border: 1px solid var(--border-color);
+  background-color: var(--hover-bg);
+  cursor: pointer;
+}
+
+.focus-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background-color: var(--selected-bg);
+}
+
+.focus-active {
+  border-color: var(--accent-color) !important;
+  color: var(--accent-color) !important;
+  background-color: var(--selected-bg) !important;
+}
+
 /* ── 반응형 ── */
 @media (max-width: 767px) {
   .hamburger      { display: flex; }
   .mobile-header  { display: flex; }
   .desktop-header { display: none; }
+
+  .topbar-actions .text-btn span { display: none; }
+  .topbar-actions .text-btn { padding: 6px 8px; }
+  .spacer { display: none; }
 }
 </style>

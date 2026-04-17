@@ -13,6 +13,7 @@ export const useNotesStore = defineStore('notes', () => {
   const searchQuery = ref('')
   const mobilePanel = ref<MobilePanel>('list')
   const drawerOpen = ref(false)
+  const focusMode = ref(false)
   const noteContent = ref('')
   const loading = ref(false)
   const contentLoading = ref(false)
@@ -118,6 +119,10 @@ export const useNotesStore = defineStore('notes', () => {
     drawerOpen.value = false
   }
 
+  function toggleFocusMode() {
+    focusMode.value = !focusMode.value
+  }
+
   return {
     menuTree,
     menuNotes,
@@ -126,6 +131,7 @@ export const useNotesStore = defineStore('notes', () => {
     searchQuery,
     mobilePanel,
     drawerOpen,
+    focusMode,
     loading,
     error,
     filteredNotes,
@@ -142,6 +148,7 @@ export const useNotesStore = defineStore('notes', () => {
     goBack,
     toggleDrawer,
     closeDrawer,
+    toggleFocusMode,
   }
 })
 
