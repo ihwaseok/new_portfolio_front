@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, ref, watch } from 'vue';
 import {
-    sendChatMessage,
+    streamChatMessage,
     type ChatSource,
     type ChatTurn,
     type ChatEvidence,
@@ -28,6 +28,7 @@ const modeOptions: { value: ChatMode; label: string }[] = [
 ];
 const messages = ref<Message[]>([]);
 const pending = ref(false);
+const pendingStatus = ref('답변을 준비하고 있습니다…');
 const error = ref('');
 const openingSource = ref(false);
 const transcript = ref<HTMLElement | null>(null);
@@ -43,10 +44,15 @@ watch(open, async (value) => {
 });
 // 최신 메시지와 응답 대기 상태가 보이도록 대화 영역을 스크롤합니다.
 watch(
-    () => [messages.value.length, pending.value],
+    () => [
+        messages.value.length,
+        messages.value[messages.value.length - 1]?.content,
+        pending.value,
+        pendingStatus.value,
+    ],
     async () => {
         await nextTick();
-        transcript.value?.scrollTo({ top: transcript.value.scrollHeight, behavior: 'smooth' });
+        transcript.value?.scrollTo({ top: transcript.value.scrollHeight, behavior: 'auto' });
     },
 );
 // 화면을 떠날 때 진행 중인 채팅 요청을 취소합니다.
@@ -74,16 +80,36 @@ async function submit() {
         }));
     const userIndex = messages.value.length;
     messages.value.push({ role: 'user', content: text });
+    const assistantIndex = messages.value.length;
+    messages.value.push({ role: 'assistant', content: '' });
     question.value = '';
     error.value = '';
     pending.value = true;
+    pendingStatus.value = '질문을 확인하고 있습니다…';
     controller = new AbortController();
     // 모델 응답이 지연되더라도 190초가 지나면 요청을 취소합니다.
     const timeout = window.setTimeout(() => controller?.abort(), 190000);
     try {
-        const result = await sendChatMessage(text, history, controller.signal, mode.value);
+        const result = await streamChatMessage(
+            text,
+            history,
+            {
+                onText: (content) => {
+                    messages.value[assistantIndex]!.content = content;
+                },
+                onStatus: (message) => {
+                    pendingStatus.value = message;
+                },
+                onMeta: (intent) => {
+                    messages.value[userIndex]!.intent = intent;
+                    messages.value[assistantIndex]!.intent = intent;
+                },
+            },
+            controller.signal,
+            mode.value,
+        );
         if (messages.value[userIndex]) messages.value[userIndex]!.intent = result.intent;
-        messages.value.push({
+        messages.value[assistantIndex] = {
             role: 'assistant',
             content: result.answer,
             sources: result.sources,
@@ -94,10 +120,10 @@ async function submit() {
                 : result.mode === 'keyword'
                   ? '키워드 검색 결과입니다.'
                   : undefined,
-        });
+        };
     } catch (e) {
         // 실패한 질문을 입력란에 복원하고 재시도 시 대화에 중복 전달되지 않게 합니다.
-        messages.value.pop();
+        messages.value.splice(userIndex);
         question.value = text;
         error.value =
             e instanceof Error && e.name === 'AbortError'
@@ -206,9 +232,9 @@ function sourceLocation(source: ChatSource) {
                     <button
                         type="button"
                         :disabled="pending"
-                        @click="submitSample('Java 버전별 특징 찾아줘')"
+                        @click="submitSample('SQL 관련정보 찾아줘')"
                     >
-                        Java 버전별 특징 찾아줘
+                        SQL 관련정보 찾아줘
                     </button>
                     <button
                         type="button"
@@ -226,11 +252,12 @@ function sourceLocation(source: ChatSource) {
             <article
                 v-for="(message, index) in messages"
                 :key="index"
+                v-show="message.role === 'user' || message.content || message.sources?.length"
                 class="chat-message"
                 :class="message.role"
             >
                 <span class="chat-role">{{ message.role === 'user' ? '나' : 'AI 도우미' }}</span>
-                <span v-if="message.role === 'assistant'" class="intent-label">{{
+                <span v-if="message.role === 'assistant' && message.intent" class="intent-label">{{
                     message.intent === 'general' ? '일반 답변' : '문서 기반'
                 }}</span>
                 <span
@@ -275,7 +302,8 @@ function sourceLocation(source: ChatSource) {
                 </div>
             </article>
             <p v-if="pending" class="chat-pending" role="status">
-                <i class="pi pi-spin pi-spinner" aria-hidden="true" /> 답변을 준비하고 있습니다…
+                <span class="chat-spinner" aria-hidden="true"></span>
+                {{ pendingStatus }}
             </p>
         </div>
         <p v-if="error" class="chat-error" role="alert">{{ error }}</p>
@@ -300,6 +328,22 @@ function sourceLocation(source: ChatSource) {
 </template>
 
 <style scoped>
+/* 아이콘 라이브러리의 회전 클래스에 의존하지 않고 대기 중 계속 회전합니다. */
+.chat-spinner {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent-color, #2dbe60);
+    border-radius: 50%;
+    animation: chat-spin 0.8s linear infinite;
+}
+@keyframes chat-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 .chat-launcher {
     position: fixed;
     bottom: 24px;
@@ -509,6 +553,9 @@ function sourceLocation(source: ChatSource) {
     overflow-wrap: anywhere;
 }
 .chat-pending {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
     color: var(--text-muted);
     line-height: 1.7;
