@@ -11,6 +11,8 @@ import {
 
 export type MobilePanel = 'list' | 'content';
 
+const menuNameCollator = new Intl.Collator('ko', { numeric: true });
+
 // 문서 탐색 상태와 모바일 화면 전환 상태를 함께 관리합니다.
 export const useNotesStore = defineStore('notes', () => {
     const menuTree = ref<MenuTreeNode[]>([]);
@@ -138,7 +140,9 @@ export const useNotesStore = defineStore('notes', () => {
         loading.value = true;
         error.value = null;
         try {
-            menuNotes.value = (await fetchMenuByParent(id)).filter(isDocument);
+            menuNotes.value = (await fetchMenuByParent(id))
+                .filter(isDocument)
+                .sort((a, b) => menuNameCollator.compare(a.MENU_NM, b.MENU_NM));
         } catch (e) {
             error.value = e instanceof Error ? e.message : '하위 메뉴를 불러오지 못했습니다.';
             menuNotes.value = [];
@@ -283,5 +287,11 @@ function buildTree(items: MenuItem[]): MenuTreeNode[] {
         }
     }
 
+    function sortNodes(nodes: MenuTreeNode[]) {
+        nodes.sort((a, b) => menuNameCollator.compare(a.menuNm, b.menuNm));
+        for (const node of nodes) sortNodes(node.children);
+    }
+
+    sortNodes(roots);
     return roots;
 }
