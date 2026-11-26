@@ -4,8 +4,6 @@ import { useNotesStore } from '@/stores/notesStore'
 import type { MenuTreeNode } from '@/types/menu'
 import NotebookTreeItem from './NotebookTreeItem.vue'
 
-const DEFAULT_OPEN_ID = import.meta.env.VITE_DEFAULT_OPEN_MENU_ID
-
 const store = useNotesStore()
 const collapsed = ref<Record<string, boolean>>({})
 
@@ -15,9 +13,24 @@ watch(() => store.menuTree, (tree) => {
   const ids = collectParentIds(tree)
   const next: Record<string, boolean> = {}
   ids.forEach(id => { next[id] = true })
-  if (DEFAULT_OPEN_ID) next[DEFAULT_OPEN_ID] = false
+  if (store.defaultOpenMenuId) expandPath(tree, store.defaultOpenMenuId, next)
   collapsed.value = next
 }, { once: true })
+
+// Expand ancestors as well when the initial page is inside a nested folder.
+watch(() => store.selectedMenuId, (id) => {
+  if (id) expandPath(store.menuTree, id, collapsed.value)
+})
+
+function expandPath(tree: MenuTreeNode[], id: string, state: Record<string, boolean>): boolean {
+  for (const node of tree) {
+    if (node.menuId === id || expandPath(node.children, id, state)) {
+      state[node.menuId] = false
+      return true
+    }
+  }
+  return false
+}
 
 function toggle(id: string) {
   collapsed.value[id] = !collapsed.value[id]

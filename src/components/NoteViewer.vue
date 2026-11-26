@@ -46,6 +46,7 @@ watch(renderedContent, async () => {
 <style scoped>
 .note-viewer {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   background-color: var(--content-bg);
   display: flex;
@@ -82,6 +83,13 @@ watch(renderedContent, async () => {
 .markdown-body {
   padding: 24px 48px 64px;
   flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .markdown-body {
+    padding: 20px 16px 48px;
+  }
 }
 </style>
 
@@ -91,7 +99,9 @@ watch(renderedContent, async () => {
   font-size: 15px;
   line-height: 1.7;
   color: var(--text-primary);
-  max-width: 800px;
+  width: 100%;
+  max-width: none;
+  overflow-wrap: anywhere;
 }
 
 .markdown-body h1 {
@@ -121,6 +131,16 @@ watch(renderedContent, async () => {
   margin: 0 0 14px;
 }
 
+.markdown-body img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 800px);
+  max-height: 500px;
+  object-fit: contain;
+  margin: 12px 0;
+}
+
 .markdown-body a {
   color: var(--accent-color);
   text-decoration: none;
@@ -140,6 +160,7 @@ watch(renderedContent, async () => {
 }
 
 .markdown-body pre {
+  width: 100%;
   background-color: var(--pre-bg);
   border-radius: 6px;
   padding: 16px 20px;

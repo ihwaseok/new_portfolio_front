@@ -6,6 +6,7 @@ import NotebookTree from '@/components/NotebookTree.vue'
 import NoteList from '@/components/NoteList.vue'
 import NoteViewer from '@/components/NoteViewer.vue'
 import VisionSample from '@/components/VisionSample.vue'
+import ChatPanel from '@/components/ChatPanel.vue'
 
 const store = useNotesStore()
 
@@ -56,6 +57,7 @@ onUnmounted(() => {
       </template>
 
     </div>
+    <ChatPanel v-if="!store.focusMode" />
   </div>
 </template>
 
