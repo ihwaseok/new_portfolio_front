@@ -1,165 +1,208 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useNotesStore } from '@/stores/notesStore'
-import type { MenuTreeNode } from '@/types/menu'
-import NotebookTreeItem from './NotebookTreeItem.vue'
+import { ref, watch } from 'vue';
+import { useNotesStore } from '@/stores/notesStore';
+import type { MenuTreeNode } from '@/types/menu';
+import NotebookTreeItem from './NotebookTreeItem.vue';
 
-const store = useNotesStore()
-const collapsed = ref<Record<string, boolean>>({})
+const store = useNotesStore();
+const collapsed = ref<Record<string, boolean>>({});
 
 // 트리 로드 완료 후 초기 collapsed 상태 설정 (1회만 실행)
-watch(() => store.menuTree, (tree) => {
-  if (!tree.length) return
-  const ids = collectParentIds(tree)
-  const next: Record<string, boolean> = {}
-  ids.forEach(id => { next[id] = true })
-  if (store.defaultOpenMenuId) expandPath(tree, store.defaultOpenMenuId, next)
-  collapsed.value = next
-}, { once: true })
+watch(
+    () => store.menuTree,
+    (tree) => {
+        if (!tree.length) return;
+        const ids = collectParentIds(tree);
+        const next: Record<string, boolean> = {};
+        ids.forEach((id) => {
+            next[id] = true;
+        });
+        if (store.defaultOpenMenuId) expandPath(tree, store.defaultOpenMenuId, next);
+        collapsed.value = next;
+    },
+    { once: true },
+);
 
-// Expand ancestors as well when the initial page is inside a nested folder.
-watch(() => store.selectedMenuId, (id) => {
-  if (id) expandPath(store.menuTree, id, collapsed.value)
-})
+// 초기 문서나 챗봇 출처가 하위 폴더에 있으면 상위 폴더도 함께 펼칩니다.
+watch(
+    () => store.selectedMenuId,
+    (id) => {
+        if (id) expandPath(store.menuTree, id, collapsed.value);
+    },
+);
 
+// 선택한 폴더와 상위 폴더를 함께 펼칩니다.
 function expandPath(tree: MenuTreeNode[], id: string, state: Record<string, boolean>): boolean {
-  for (const node of tree) {
-    if (node.menuId === id || expandPath(node.children, id, state)) {
-      state[node.menuId] = false
-      return true
+    for (const node of tree) {
+        if (node.menuId === id || expandPath(node.children, id, state)) {
+            state[node.menuId] = false;
+            return true;
+        }
     }
-  }
-  return false
+    return false;
 }
 
+// 지정한 폴더의 접힘 상태를 전환합니다.
 function toggle(id: string) {
-  collapsed.value[id] = !collapsed.value[id]
+    collapsed.value[id] = !collapsed.value[id];
 }
 
+// 선택한 폴더의 문서 목록을 스토어에서 불러옵니다.
 function selectNode(node: MenuTreeNode) {
-  store.selectMenu(node.menuId)
+    store.selectMenu(node.menuId);
 }
 
+// 모든 폴더의 접힘 상태를 해제합니다.
 function expandAll() {
-  collapsed.value = {}
+    collapsed.value = {};
 }
 
+// 하위 폴더가 있는 노드를 모두 접습니다.
 function collapseAll() {
-  const ids = collectParentIds(store.menuTree)
-  const next: Record<string, boolean> = {}
-  ids.forEach(id => { next[id] = true })
-  collapsed.value = next
+    const ids = collectParentIds(store.menuTree);
+    const next: Record<string, boolean> = {};
+    ids.forEach((id) => {
+        next[id] = true;
+    });
+    collapsed.value = next;
 }
 
+// 접기·펼치기 대상인 부모 노드 ID를 재귀적으로 수집합니다.
 function collectParentIds(list: MenuTreeNode[]): string[] {
-  const ids: string[] = []
-  for (const node of list) {
-    if (node.children.length) {
-      ids.push(node.menuId)
-      ids.push(...collectParentIds(node.children))
+    const ids: string[] = [];
+    for (const node of list) {
+        if (node.children.length) {
+            ids.push(node.menuId);
+            ids.push(...collectParentIds(node.children));
+        }
     }
-  }
-  return ids
+    return ids;
 }
 </script>
 
 <template>
-  <nav class="notebook-tree">
-    <div class="tree-toolbar">
-      <button class="toolbar-btn" title="전체 펼치기" @click="expandAll">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M3 5.5L7 2L11 5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M3 8.5L7 12L11 8.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <button class="toolbar-btn" title="전체 줄이기" @click="collapseAll">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M3 2.5L7 6L11 2.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M3 11.5L7 8L11 11.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-    </div>
+    <nav class="notebook-tree">
+        <div class="tree-toolbar">
+            <button class="toolbar-btn" title="전체 펼치기" @click="expandAll">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path
+                        d="M3 5.5L7 2L11 5.5"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="M3 8.5L7 12L11 8.5"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </button>
+            <button class="toolbar-btn" title="전체 줄이기" @click="collapseAll">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path
+                        d="M3 2.5L7 6L11 2.5"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="M3 11.5L7 8L11 11.5"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </button>
+        </div>
 
-    <div v-if="store.loading && !store.menuTree.length" class="loading-state">
-      불러오는 중...
-    </div>
-    <div v-else-if="store.error && !store.menuTree.length" class="error-state">
-      {{ store.error }}
-    </div>
+        <div v-if="store.loading && !store.menuTree.length" class="loading-state">
+            불러오는 중...
+        </div>
+        <div v-else-if="store.error && !store.menuTree.length" class="error-state">
+            {{ store.error }}
+        </div>
 
-    <ul v-else class="tree-list">
-      <NotebookTreeItem
-        v-for="node in store.menuTree"
-        :key="node.menuId"
-        :node="node"
-        :depth="0"
-        :collapsed="collapsed"
-        :selected-id="store.selectedMenuId"
-        @select="selectNode"
-        @toggle="toggle"
-      />
-    </ul>
-  </nav>
+        <ul v-else class="tree-list">
+            <NotebookTreeItem
+                v-for="node in store.menuTree"
+                :key="node.menuId"
+                :node="node"
+                :depth="0"
+                :collapsed="collapsed"
+                :selected-id="store.selectedMenuId"
+                @select="selectNode"
+                @toggle="toggle"
+            />
+        </ul>
+    </nav>
 </template>
 
 <style scoped>
 .notebook-tree {
-  width: 280px;
-  min-width: 280px;
-  background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border-color);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+    width: 280px;
+    min-width: 280px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .tree-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 2px;
-  padding: 8px 8px 4px;
-  flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+    padding: 8px 8px 4px;
+    flex-shrink: 0;
 }
 
 .toolbar-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: background-color 0.1s, color 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition:
+        background-color 0.1s,
+        color 0.1s;
 }
 
 .toolbar-btn:hover {
-  background-color: var(--hover-bg);
-  color: var(--text-primary);
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
 }
 
 .tree-list {
-  list-style: none;
-  margin: 0;
-  padding: 0 6px 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0 6px 12px;
 }
 
 .loading-state,
 .error-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 12px;
-  font-size: 13px;
-  text-align: center;
-  color: var(--text-muted);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 12px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--text-muted);
 }
 
 .error-state {
-  color: #e06c6c;
+    color: #e06c6c;
 }
 </style>

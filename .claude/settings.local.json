@@ -1,8 +1,5 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(npx tsc *)",
-      "Bash(npx vue-tsc *)"
-    ]
-  }
+    "permissions": {
+        "allow": ["Bash(npx tsc *)", "Bash(npx vue-tsc *)"]
+    }
 }
